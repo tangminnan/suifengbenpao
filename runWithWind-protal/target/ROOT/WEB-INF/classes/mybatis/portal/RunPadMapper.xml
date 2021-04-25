@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.portal.pad.mapper.RunPadMapper">
+    
+    <resultMap type="RunPad" id="RunPadResult">
+        <result property="id"    column="id"    />
+        <result property="mac"    column="mac"    />
+        <result property="name"    column="name"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectRunPadVo">
+        select id, mac, create_time,name from run_pad
+    </sql>
+
+    <select id="selectRunPadList" parameterType="RunPad" resultMap="RunPadResult">
+        <include refid="selectRunPadVo"/>
+        <where>  
+            <if test="mac != null  and mac != ''"> and mac = #{mac}</if>
+            <if test="name != null  and name != ''"> and name = #{name}</if>
+
+        </where>
+    </select>
+    
+    <select id="selectRunPadById" parameterType="Long" resultMap="RunPadResult">
+        <include refid="selectRunPadVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectRunPadByMac" parameterType="String" resultMap="RunPadResult">
+        <include refid="selectRunPadVo"/>
+        where mac = #{mac}
+    </select>
+
+
+        
+    <insert id="insertRunPad" parameterType="RunPad" useGeneratedKeys="true" keyProperty="id">
+        insert into run_pad
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mac != null">mac,</if>
+            <if test="name != null">name,</if>
+
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mac != null">#{mac},</if>
+            <if test="name != null">#{name},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRunPad" parameterType="RunPad">
+        update run_pad
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mac != null">mac = #{mac},</if>
+            <if test="name != null">name = #{name},</if>
+
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunPadById" parameterType="Long">
+        delete from run_pad where id = #{id}
+    </delete>
+
+    <delete id="deleteRunPadByIds" parameterType="String">
+        delete from run_pad where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

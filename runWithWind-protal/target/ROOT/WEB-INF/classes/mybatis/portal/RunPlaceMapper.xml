@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.portal.place.mapper.RunPlaceMapper">
+    
+    <resultMap type="RunPlace" id="RunPlaceResult">
+        <result property="id"    column="id"    />
+        <result property="placeName"    column="place_name"    />
+        <result property="phone"    column="phone"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="name"    column="name"    />
+        <result property="padCount"    column="pad_count"    />
+        <result property="deviceCount"    column="device_count"    />
+        <result property="boxCount"    column="box_count"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectRunPlaceVo">
+        select id, place_name, phone, create_time, name, pad_count, device_count, box_count, status from run_place
+    </sql>
+
+    <select id="selectRunPlaceList" parameterType="RunPlace" resultMap="RunPlaceResult">
+        <include refid="selectRunPlaceVo"/>
+        <where>
+            <if test="id != null "> and id = #{id}</if>
+            <if test="placeName != null  and placeName != ''"> and place_name like concat('%', #{placeName}, '%')</if>
+            <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="padCount != null "> and pad_count = #{padCount}</if>
+            <if test="deviceCount != null "> and device_count = #{deviceCount}</if>
+            <if test="boxCount != null "> and box_count = #{boxCount}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectRunPlaceById" parameterType="Integer" resultMap="RunPlaceResult">
+        <include refid="selectRunPlaceVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectRunPlaceByPhone" parameterType="String" resultMap="RunPlaceResult">
+        <include refid="selectRunPlaceVo"/>
+        where phone = #{phone}
+    </select>
+
+
+        
+    <insert id="insertRunPlace" parameterType="RunPlace" useGeneratedKeys="true" keyProperty="id">
+        insert into run_place
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="placeName != null">place_name,</if>
+            <if test="phone != null">phone,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="name != null">name,</if>
+            <if test="padCount != null">pad_count,</if>
+            <if test="deviceCount != null">device_count,</if>
+            <if test="boxCount != null">box_count,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="placeName != null">#{placeName},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="name != null">#{name},</if>
+            <if test="padCount != null">#{padCount},</if>
+            <if test="deviceCount != null">#{deviceCount},</if>
+            <if test="boxCount != null">#{boxCount},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRunPlace" parameterType="RunPlace">
+        update run_place
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="placeName != null">place_name = #{placeName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="padCount != null">pad_count = #{padCount},</if>
+            <if test="deviceCount != null">device_count = #{deviceCount},</if>
+            <if test="boxCount != null">box_count = #{boxCount},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunPlaceById" parameterType="Integer">
+        delete from run_place where id = #{id}
+    </delete>
+
+    <delete id="deleteRunPlaceByIds" parameterType="String">
+        delete from run_place where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

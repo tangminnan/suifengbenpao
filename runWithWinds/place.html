@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="format-detection" content="telephone=no">
+		<link rel="stylesheet" href="css/css.css?v1.0.3" type="text/css">
+		<link rel="stylesheet" href="css/select.css" type="text/css" />
+		<script src="js/jquery-3.5.1.min.js"></script>
+		<title>我的设备</title>
+		<script type="text/javascript" src="js/Font.js"></script>
+		<script type="text/javascript" src="js/wode.js"></script>
+		<script type="text/javascript" src="layer_v3.1.1/3.1.1/layer.js"></script>
+		
+		<script type="application/javascript" src="js/select.js"></script>
+	</head>
+	<body>
+		<div class="tit"><em onclick="window.history.go(-1)"></em></div>
+
+		<div class="shebei">
+			<h3>添加场地</h3>
+			<div class="boxA" id="search-form">
+				<div id="demo1" class="selectPickerWrapper">
+					<select class="hidden" id="placeSelect">
+						
+					</select>
+				</div>
+				<input class="sheBbtn" type="button" value="添加" onclick="addDevice()" />
+			</div>
+			<div id="message"></div>
+			<h3>当前场地</h3>
+			<div class="boxA boxB dq">
+
+			</div>
+		</div>
+
+		<script>
+			var userId = localStorage.getItem("userId");
+			//var userId = 162
+			$("#demo1").mySelect();
+
+			function loadDevice() {
+				$.ajax({
+					url: httpurl + '/api/officialAccounts/getMyPlace',
+					type: 'get',
+					data: {
+						userId: userId
+					},
+					success: function(data) {
+						var dq = ''
+						if (data.code == 200) {
+							var result = data.data
+							if (result.placeName) {
+								dq += '<span>' + result.placeName + '</span>'
+								dq += '<div class="join">'
+								dq +=
+									`<input type="checkbox" name="sex" id="male1" class="chooseBtn" checked onchange="uploadDevice('${result.id}','male1')"/>`
+								dq += '<label for="male1" class="choose-label"></label>'
+								dq += '</div>'
+							} else {
+								dq += '<span>暂无绑定</span>'
+							}
+
+						} else {
+							dq += '<span>暂无绑定</span>'
+						}
+						$('.dq').html(dq)
+
+					}
+				})
+			}
+
+			var $n3 = $("#deviceNum"); //定位到input框
+			$n3.change(function() {
+				alert($n3.val())
+				$.ajax({
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/selectPlaceLike',
+					url: httpurl+'/api/officialAccounts/selectPlaceLike',
+					type: 'get',
+					data: {
+						placeName: $n3.val()
+					},
+					success: function(data) {
+						console.log(data)
+					}
+				})
+			})
+
+			if (userId) {
+				loadDevice();
+			} else {
+				window.location.href = 'denglu.html'
+			}
+
+			function uploadDevice() {
+				$.ajax({
+					url: httpurl + '/api/officialAccounts/unbindPlace',
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/unbindPlace',
+					type: 'get',
+					data: {
+						userId: userId
+					},
+					success: function(data) {
+						/* console.log(data) */
+						layer.msg(data.msg, function() {
+							//关闭后的操作
+							window.location.reload()
+						});
+					},
+					error: function(msg) {
+						console.log(msg)
+					}
+				})
+			}
+
+			function addDevice() {
+				var placeId = $('#placeSelect').val()
+				if (placeId == null || placeId == '') {
+					layer.msg("placeSelect")
+					return;
+				}
+				$.ajax({
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/updatePlaceId',
+					url: httpurl + '/api/officialAccounts/updatePlaceId',
+					type: 'get',
+					data: {
+						placeId: placeId,
+						userId: userId
+					},
+					success: function(data) {
+						layer.msg(data.msg, function() {
+							//关闭后的操作
+							window.location.reload()
+						});
+
+					}
+				})
+			}
+		
+			function selectPlaceList(){
+				$.ajax({
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/selectPlaceList',
+					url: httpurl+'/api/officialAccounts/selectPlaceList',
+					type: 'get',
+					success: function(data) {
+						var placeList = data.data
+						var html=''
+						for(var i=0;i<placeList.length;i++){
+							html+=`<option value="${placeList[i].id}">${placeList[i].placeName}</option>`
+						}
+						$('#placeSelect').html(html)
+					}
+				})
+			}
+			selectPlaceList();
+		</script>
+	</body>
+</html>

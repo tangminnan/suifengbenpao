@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.runmanager.courseDevice.mapper.RunCourseDeviceMapper">
+
+    <resultMap type="RunCourseDevice" id="RunCourseDeviceResult">
+        <result property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="userId" column="user_id"/>
+        <result property="type" column="type"/>
+        <result property="addTime" column="add_time"/>
+    </resultMap>
+
+    <sql id="selectRunCourseDeviceVo">
+        select id, course_id, device_id, start_time, user_id, type, add_time from run_course_device
+    </sql>
+
+    <select id="selectRunCourseDeviceList" parameterType="RunCourseDevice" resultMap="RunCourseDeviceResult">
+        <include refid="selectRunCourseDeviceVo"/>
+        <where>
+            <if test="courseId != null ">and course_id = #{courseId}</if>
+            <if test="deviceId != null  and deviceId != ''">and device_id = #{deviceId}</if>
+            <if test="startTime != null  and startTime != ''">and start_time = #{startTime}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="type != null ">and type = #{type}</if>
+            <if test="addTime != null ">and add_time = #{addTime}</if>
+        </where>
+    </select>
+
+    <select id="selectRunCourseDeviceById" parameterType="Long" resultMap="RunCourseDeviceResult">
+        <include refid="selectRunCourseDeviceVo"/>
+        where id = #{id}
+    </select>
+
+
+    <insert id="insertRunCourseDevice" parameterType="RunCourseDevice" useGeneratedKeys="true" keyProperty="id">
+        insert into run_course_device
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="deviceId != null">device_id,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="type != null">type,</if>
+            <if test="addTime != null">add_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="deviceId != null">#{deviceId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="type != null">#{type},</if>
+            <if test="addTime != null">#{addTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRunCourseDevice" parameterType="RunCourseDevice">
+        update run_course_device
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="deviceId != null">device_id = #{deviceId},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="addTime != null">add_time = #{addTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunCourseDeviceById" parameterType="Long">
+        delete from run_course_device where id = #{id}
+    </delete>
+
+    <delete id="deleteRunCourseDeviceByIds" parameterType="String">
+        delete from run_course_device where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

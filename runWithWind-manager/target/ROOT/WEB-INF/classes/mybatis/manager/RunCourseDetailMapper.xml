@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.runmanager.detail.mapper.RunCourseDetailMapper">
+    
+    <resultMap type="RunCourseDetail" id="RunCourseDetailResult">
+        <result property="id"    column="id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="calorie"    column="calorie"    />
+        <result property="heartRate"    column="heart_rate"    />
+        <result property="stepCount"    column="step_count"    />
+        <result property="ck"    column="ck"    />
+        <result property="sportTime"    column="sport_time"    />
+        <result property="saveTime"    column="save_time"    />
+    </resultMap>
+
+    <sql id="selectRunCourseDetailVo">
+        select id, course_id, user_id, calorie, heart_rate, step_count, ck, sport_time, save_time from run_course_detail
+    </sql>
+
+    <select id="selectRunCourseDetailList" parameterType="RunCourseDetail" resultMap="RunCourseDetailResult">
+        <include refid="selectRunCourseDetailVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="calorie != null "> and calorie = #{calorie}</if>
+            <if test="heartRate != null "> and heart_rate = #{heartRate}</if>
+            <if test="stepCount != null "> and step_count = #{stepCount}</if>
+            <if test="ck != null "> and ck = #{ck}</if>
+            <if test="params.beginSportTime != null and params.beginSportTime!= ''"> and sport_time between #{params.beginSportTime} and #{params.endSportTime}</if>
+
+            <if test="saveTime != null "> and save_time = #{saveTime}</if>
+        </where>
+    </select>
+    <!--and DATE_ADD(#{params.endSportTime}, INTERVAL 1 DAY )-->
+    <select id="selectRunCourseDetailById" parameterType="Long" resultMap="RunCourseDetailResult">
+        <include refid="selectRunCourseDetailVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertRunCourseDetail" parameterType="RunCourseDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into run_course_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="calorie != null">calorie,</if>
+            <if test="heartRate != null">heart_rate,</if>
+            <if test="stepCount != null">step_count,</if>
+            <if test="ck != null">ck,</if>
+            <if test="sportTime != null">sport_time,</if>
+            <if test="saveTime != null">save_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="calorie != null">#{calorie},</if>
+            <if test="heartRate != null">#{heartRate},</if>
+            <if test="stepCount != null">#{stepCount},</if>
+            <if test="ck != null">#{ck},</if>
+            <if test="sportTime != null">#{sportTime},</if>
+            <if test="saveTime != null">#{saveTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRunCourseDetail" parameterType="RunCourseDetail">
+        update run_course_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="calorie != null">calorie = #{calorie},</if>
+            <if test="heartRate != null">heart_rate = #{heartRate},</if>
+            <if test="stepCount != null">step_count = #{stepCount},</if>
+            <if test="ck != null">ck = #{ck},</if>
+            <if test="sportTime != null">sport_time = #{sportTime},</if>
+            <if test="saveTime != null">save_time = #{saveTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunCourseDetailById" parameterType="Long">
+        delete from run_course_detail where id = #{id}
+    </delete>
+
+    <delete id="deleteRunCourseDetailByIds" parameterType="String">
+        delete from run_course_detail where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

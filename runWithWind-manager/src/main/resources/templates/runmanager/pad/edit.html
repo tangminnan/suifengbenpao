@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('修改pad')"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-pad-edit" th:object="${runPad}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">mac地址：</label>
+            <div class="col-sm-8">
+                <input name="mac" th:field="*{mac}" class="form-control" type="text" id="mac">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">名称：</label>
+            <div class="col-sm-8">
+                <input name="name" th:field="*{name}" class="form-control" type="text">
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+   var prefix = ctx + "runmanager/pad";
+   $("#form-pad-edit").validate({
+      rules: {
+         mac: {
+            minlength: 2,
+            maxlength: 20,
+            remote: {
+               url: prefix + "/checkPadMacUnique",
+               type: "post",
+               dataType: "json",
+               data: {
+                  "id": function () {
+                     return $.common.trim($("#id").val());
+                  },
+                  "mac": function () {
+                     return $.common.trim($("#mac").val());
+                  }
+               },
+               dataFilter: function (data, type) {
+                  return $.validate.unique(data);
+               }
+            }
+         },
+      },
+      messages: {
+         "mac": {
+            remote: "pad已经存在"
+         },
+      },
+      focusCleanup: true
+   });
+
+   function submitHandler() {
+      if ($.validate.form()) {
+         $.operate.save(prefix + "/edit", $('#form-pad-edit').serialize());
+      }
+   }
+</script>
+</body>
+</html>

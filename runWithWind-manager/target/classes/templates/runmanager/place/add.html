@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增场地列')"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-place-add">
+
+        <input id="password" name="password" class="form-control" type="hidden"
+               th:value="${@config.getKey('sys.user.initPassword')}" required>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">场地名称：</label>
+            <div class="col-sm-8">
+                <input name="placeName" class="form-control" type="text" maxlength="20">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">登录账号：</label>
+            <div class="col-sm-8">
+                <input name="loginName" class="form-control" type="text" maxlength="20">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">联系人手机号：</label>
+            <div class="col-sm-8">
+                <input name="phone" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">负责人：</label>
+            <div class="col-sm-8">
+                <input name="name" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">pad数量：</label>
+            <div class="col-sm-8">
+                <input name="padCount" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">心率设备数量：</label>
+            <div class="col-sm-8">
+                <input name="deviceCount" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">盒子数量：</label>
+            <div class="col-sm-8">
+                <input name="boxCount" class="form-control" type="text">
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+
+   var prefix = ctx + "runmanager/place"
+   var icon = "<i class='fa fa-times-circle'></i> ";
+   $("#form-place-add").validate({
+      onkeyup: false,
+      rules: {
+         padCount: {
+            required: true,
+            digits: true,
+            min: 1
+         },
+         deviceCount: {
+            required: true,
+            digits: true,
+            min: 1
+         },
+         boxCount: {
+            required: true,
+            digits: true,
+            min: 1
+         },
+         phone: {
+            isPhone: true,
+            required: true,
+            remote: {
+               url: "/system/user/checkPhoneUnique",
+               type: "post",
+               dataType: "json",
+               data: {
+                  "phonenumber": function () {
+                     return $.common.trim($("#phone").val());
+                  }
+               },
+               dataFilter: function (data, type) {
+                  return $.validate.unique(data);
+               }
+            }
+         },
+      },
+      messages: {
+         "phone": {
+            remote: "用户已经存在"
+         },
+         "padCount": {
+            required: icon + "请输入Pad数量"
+         },
+         "deviceCount": {
+            required: icon + "请输入心率设备数量"
+         },
+         "boxCount": {
+            required: icon + "请输入盒子数量"
+         }
+
+      },
+
+
+      focusCleanup: true
+
+   });
+
+   function submitHandler() {
+      if ($.validate.form()) {
+         $.operate.save(prefix + "/add", $('#form-place-add').serialize());
+      }
+   }
+</script>
+</body>
+</html>

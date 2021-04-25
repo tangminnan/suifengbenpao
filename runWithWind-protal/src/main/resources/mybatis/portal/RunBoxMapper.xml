@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.portal.box.mapper.RunBoxMapper">
+    
+    <resultMap type="RunBox" id="RunBoxResult">
+        <result property="id"    column="id"    />
+        <result property="boxMac"    column="box_mac"    />
+        <result property="boxName"    column="box_name"    />
+        <result property="bindPlace"    column="bind_place"    />
+        <result property="bindPad"    column="bind_pad"    />
+        <result property="status"    column="status"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectRunBoxVo">
+        select id, box_mac, box_name, bind_place, bind_pad,status, create_time from run_box
+    </sql>
+
+    <select id="selectRunBoxList" parameterType="RunBox" resultMap="RunBoxResult">
+        <include refid="selectRunBoxVo"/>
+        <where>  
+            <if test="boxMac != null  and boxMac != ''"> and box_mac like concat('%', #{boxMac}, '%')</if>
+            <if test="boxName != null  and boxName != ''"> and box_name like concat('%', #{boxName}, '%')</if>
+            <if test="bindPlace != null and bindPlace!=''"> and bind_place = #{bindPlace}</if>
+            <if test="bindPad != null and bindPad!='' "> and bind_pad = #{bindPad}</if>
+            <if test="status != null and status!=''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectRunBoxById" parameterType="Long" resultMap="RunBoxResult">
+        <include refid="selectRunBoxVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertRunBox" parameterType="RunBox" useGeneratedKeys="true" keyProperty="id">
+        insert into run_box
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="boxMac != null">box_mac,</if>
+            <if test="boxName != null">box_name,</if>
+            <if test="bindPlace != null">bind_place,</if>
+            <if test="bindPad != null">bind_pad,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="boxMac != null">#{boxMac},</if>
+            <if test="boxName != null">#{boxName},</if>
+            <if test="bindPlace != null">#{bindPlace},</if>
+            <if test="bindPad != null">#{bindPad},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRunBox" parameterType="RunBox">
+        update run_box
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="boxMac != null">box_mac = #{boxMac},</if>
+            <if test="boxName != null">box_name = #{boxName},</if>
+            <if test="bindPlace != null">bind_place = #{bindPlace},</if>
+            <if test="bindPad != null">bind_pad = #{bindPad},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunBoxById" parameterType="Long">
+        delete from run_box where id = #{id}
+    </delete>
+
+    <delete id="deleteRunBoxByIds" parameterType="String">
+        delete from run_box where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

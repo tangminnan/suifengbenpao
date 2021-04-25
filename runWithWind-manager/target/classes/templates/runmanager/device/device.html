@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('心率带列表')"/>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="formId">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>设备号：</label>
+                            <input type="text" name="deviceId"/>
+                        </li>
+                        <li>
+                            <label>设备名称：</label>
+                            <input type="text" name="name"/>
+                        </li>
+                        <li>
+                            <label>用户：</label>
+                            <select name="userId">
+                                <option value="">所有</option>
+                                <option th:each="li:${userList}" th:value="${li.id}" th:text="${li.name}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="runmanager:device:add">
+                <i class="fa fa-plus"></i> 添加
+            </a>
+
+            <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="runmanager:device:export">
+                <i class="fa fa-download"></i> 导出
+            </a>
+
+            <a class="btn btn-success" onclick="sendDevice()" shiro:hasPermission="runmanager:device:sendDevice">
+                <i class="fa fa-plus"></i> 分配设备给场馆
+            </a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+   var editFlag = [[${@permission.hasPermi('runmanager:device:edit')}]];
+   var removeFlag = [[${@permission.hasPermi('runmanager:device:remove')}]];
+   var prefix = ctx + "runmanager/device";
+
+   $(function () {
+      var options = {
+         url: prefix + "/list",
+         createUrl: prefix + "/add",
+         updateUrl: prefix + "/edit/{id}",
+         removeUrl: prefix + "/remove",
+         exportUrl: prefix + "/export",
+         modalName: "心率带",
+         columns: [{
+            checkbox: true
+         },
+            {
+               field: 'id',
+               title: 'id',
+               visible: false
+            },
+            {
+               field: 'deviceId',
+               title: '心率设备号'
+            },
+            {
+               field: 'name',
+               title: '设备名称'
+            },
+            {
+               field: 'userId',
+               title: '用户id',
+               visible: false
+            },
+            {
+               field: 'placeId',
+               title: '场地id',
+            },
+            {
+               field: 'isbind',
+               title: '是否绑定',
+               formatter: function (value, row, index) {
+                  if (row.status == 1) {
+                     var statuschar = "";
+                     var d = '<button type="button" class="btn btn-md btn-danger">上课中---不允许操作</button>' + statuschar;
+                     return d;
+                  } else {
+                     return saleorbindTOOls(row);
+                  }
+
+               }
+            },
+            {
+               field: 'username',
+               title: '用户',
+               formatter: function (value, row) {
+                  if (row.status == 1) {
+                     var statuschar = "";
+                     var d = '<button type="button" class="btn btn-md btn-danger">' + row.username + '上课中---不允许操作</button>' + statuschar;
+                     return d;
+                  } else {
+                     if (row.userId != null && row.userId != 0) {
+                        var statuschar = "";
+                        var d = '<button type="button" class="btn btn-md btn-primary" onclick="unbindUser(' + row.id + ')">' + row.username + '--单击解除绑定</button>' + statuschar;
+                        return d;
+                     } else {
+                        if (row.isbind == 1) {
+                           var select = "";
+                           $.ajax({
+                              type: "get",
+                              url: prefix + "/selectWBD",
+                              async: false,
+                              success: function (data) {
+                                 var data = data.data
+                                 select += '<select id="selectPlace" name="selectPlace" class="selectPlace" data-live-search="true"><option></option>';
+                                 for (var i = 0; i < data.length; i++) {
+                                    select += '<option value="' + row.id + '---' + data[i].id + '">' + data[i].name + '</option>';
+                                 }
+                                 select += "</select>"
+                              }
+                           });
+
+                           return select;
+                        }
+                     }
+                  }
+               }
+            },
+
+            {
+               field: 'status',
+               title: '上课状态',
+               formatter: function (value) {
+                  if (value == 1) {
+                     return "上课中"
+                  } else {
+                     return "未上课"
+                  }
+               }
+            },
+            {
+               title: '操作',
+               align: 'center',
+               formatter: function (value, row, index) {
+                  var actions = [];
+                  if (row.status != 1) {
+                     actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.id + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                     actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a>');
+                  }
+                  return actions.join('');
+               }
+            }]
+      };
+      $.table.init(options);
+   });
+</script>
+<script>
+   function saleorbindTOOls(row) {
+      if (row.isbind == 1) {
+         return '<i class="fa fa-toggle-on text-info fa-2x" onclick="disenablebind(\'' + row.id + '\')"></i> ';
+      } else {
+         return '<i class="fa fa-toggle-off text-info fa-2x" onclick="enablebind(\'' + row.id + '\')"></i> ';
+      }
+   }
+
+
+   /* 解除绑定*/
+   function disenablebind(id) {
+      $.modal.confirm("确认要解除绑定吗？", function () {
+         $.operate.post(prefix + "/isBindChange", {"id": id, "isbind": 2});
+      })
+   }
+
+   /* 启用绑定 */
+   function enablebind(id) {
+
+      $.modal.confirm("确认要启用绑定吗？", function () {
+         $.operate.post(prefix + "/isBindChange", {"id": id, "isbind": 1});
+      })
+   }
+</script>
+<script>
+   function unbindUser(id) {
+      $.modal.confirm("确认要解除绑定吗？", function () {
+         $.operate.post(prefix + "/edit", {"id": id, "userId": 0});
+      })
+   }
+
+
+   $("body").on('change', 'select', function () {
+      var phoneandname = $(this).children(":selected").val();
+      if (phoneandname != null && "" != phoneandname) {
+         var arry = phoneandname.split("---");
+
+         $.ajax({
+            cache: true,
+            type: "POST",
+            url: "/runmanager/device/edit",
+            data: {id: arry[0], userId: arry[1]},// 你的formid
+            async: false,
+            success: function (data) {
+               if (data.code == 0) {
+                  location.reload();
+               }
+            }
+         });
+      }
+   });
+
+   function sendDevice() {
+
+      layer.open({
+         type: 2,
+         title: '分发设备',
+         maxmin: true,
+         shadeClose: false, // 点击遮罩关闭层
+         area: ['800px', '520px'],
+         content: prefix + '/sendDevice' // iframe的url
+      });
+   }
+
+
+</script>
+</body>
+</html>

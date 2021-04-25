@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增心率带')"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-device-add">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">心率设备号：</label>
+            <div class="col-sm-8">
+                <input name="deviceId" class="form-control" type="text" maxlength="30" id="deviceId"
+                       onkeyup="this.value=this.value.replace(/[^0-9-]+.[^0-9-]+/,'');">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">设备名称：</label>
+            <div class="col-sm-8">
+                <input name="name" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">用户id：</label>
+            <div class="col-sm-8">
+                <select name="userId" id="userId" title="请选择用户" class="form-control selectpicker show-tick "
+                        data-live-search="true" data-actions-box="false">
+                    <option th:each="li:${list}"
+                            th:text="'id:' + ${li.id}  + '  &nbsp&nbsp&nbsp昵称：'+${li.nickname} +' &nbsp&nbsp&nbsp姓名：'+${li.name} "
+                            th:value="${li.id}"></option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+   var prefix = ctx + "runmanager/device"
+   $("#form-device-add").validate({
+      rules: {
+         deviceId: {
+            minlength: 2,
+            maxlength: 10,
+            remote: {
+               url: prefix + "/checkDeviceIdUnique",
+               type: "post",
+               dataType: "json",
+               data: {
+                  "deviceId": function () {
+                     return $.common.trim($("#deviceId").val());
+                  }
+               },
+               dataFilter: function (data, type) {
+                  return $.validate.unique(data);
+               }
+            }
+         },
+      },
+      messages: {
+         "deviceId": {
+            remote: "设备号已经存在"
+         },
+      },
+      focusCleanup: true
+   });
+
+   function submitHandler() {
+      if ($.validate.form()) {
+         $.operate.save(prefix + "/add", $('#form-device-add').serialize());
+      }
+   }
+</script>
+</body>
+</html>

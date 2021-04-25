@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('修改场地列')"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-place-edit" th:object="${runPlace}">
+        <input name="id" th:field="*{id}" type="hidden">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">场地名称：</label>
+            <div class="col-sm-8">
+                <input name="placeName" th:field="*{placeName}" class="form-control" type="text" maxlength="20">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">登录账号：</label>
+            <div class="col-sm-8">
+                <input name="phone" th:field="*{loginName}" class="form-control" disabled>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">联系人手机号：</label>
+            <div class="col-sm-8">
+                <input name="phone" th:field="*{phone}" class="form-control">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">负责人：</label>
+            <div class="col-sm-8">
+                <input name="name" th:field="*{name}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">pad数量：</label>
+            <div class="col-sm-8">
+                <input name="padCount" th:field="*{padCount}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">心率设备数量：</label>
+            <div class="col-sm-8">
+                <input name="deviceCount" th:field="*{deviceCount}" class="form-control" type="text">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">盒子数量：</label>
+            <div class="col-sm-8">
+                <input name="boxCount" th:field="*{boxCount}" class="form-control" type="text">
+            </div>
+        </div>
+        <!--<div class="form-group">
+            <label class="col-sm-3 control-label">pad状态 1=上课中，2=未上课 ：</label>
+            <div class="col-sm-8">
+                <div class="radio-box">
+                    <input type="radio" name="status" value="">
+                    <label th:for="status" th:text="未知"></label>
+                </div>
+                <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+            </div>
+        </div>-->
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+   var prefix = ctx + "runmanager/place";
+   $("#form-place-edit").validate({
+      focusCleanup: true
+   });
+
+   function submitHandler() {
+      if ($.validate.form()) {
+         $.operate.save(prefix + "/edit", $('#form-place-edit').serialize());
+      }
+   }
+</script>
+</body>
+</html>

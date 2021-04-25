@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html style="font-size: .3rem;	font-family: Microsoft YaHei, Tahoma, Arial, sans-serif;">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="format-detection" content="telephone=no">
+		<link rel="stylesheet" href="css/css.css?v1.0.2" type="text/css">
+		<title>登录</title>
+		<script type="text/javascript" src="js/Font.js"></script>
+		<script type="text/javascript" src="js/wode.js"></script>
+		<script type="text/javascript" src="js/jquery-3.5.1.min.js"></script>
+		<script type="text/javascript" src="layer_v3.1.1/3.1.1/layer.js"></script>
+	</head>
+	<body class="login" style="display: none;">
+		<!-- <div class="tit"><em></em>手机号登录</div> -->
+
+		<div class="zhuce-txt">
+			<p><input type="text" id="phone" maxlength="11" placeholder="输入有效手机号" /></p>
+			<div class="ZCyz">
+				<input id='codenum' class="fl" type="text" placeholder="验证码" />
+				<input class="fr" type="button" id="btn" value="获取验证码" onclick="settime(this)" />
+			</div>
+
+		</div>
+
+		<div class="read">
+			<input type="checkbox" id="checkbox1" />
+			<label for="">已阅读并同意 <a href="tiaokuan.html">《法律条款及隐私政策》</a></label>
+		</div>
+
+		<div class="btn"><input type="button" value="登录" onclick="login()" /></div>
+		
+	</body>
+</html>
+<script type="text/javascript">
+	/* if (localStorage.getItem("userId") != null && localStorage.getItem("userId") != '' && localStorage.getItem("userId") >
+		0) {
+		window.location.href = "kecheng.html"
+	} */
+	if(!localStorage.getItem("userId")){
+		var callback = encodeURIComponent("http://qinzi.jingtu99.com/kecheng.html");
+		window.location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe23f18d7b8947aa6&redirect_uri=' +
+			callback + '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
+	}else{
+		window.location.href="kecheng.html"
+	}
+	var countdown = 60;
+	//获取验证码
+	function settime(val) {
+		if ($("#phone").val() != null && $('#phone').val() != '') {
+			//测试阶段先关闭
+			/* $.ajax({
+				url: httpurl + '/api/officialAccounts/getCode',
+				type: 'get',
+				data: {
+					phone: $('#phone').val()
+				},
+				success: function(data) {
+					setDjs()
+				}
+			}) */
+			setDjs()
+		} else {
+			layer.msg("请输入手机号")
+			return;
+		}
+	}
+	//倒计时
+	function setDjs(val) {
+		if (countdown == 0) {
+			$('.fr').attr("disabled", false)
+			$('.fr').val("免费获取验证码")
+			countdown = 60;
+		} else {
+			$('.fr').attr("disabled", true)
+			$('.fr').val("重新发送(" + countdown + "s)")
+			countdown--;
+		}
+		setTimeout(function() {
+			setDjs()
+		}, 1000)
+
+	}
+
+	//登录
+	function login() {
+		var phone = $('#phone').val()
+		//var codenum = $('#codenum').val()
+		var codenum = '000000';
+		if (phone == '' || phone == null) {
+			layer.msg("请输入手机号")
+			return;
+		}
+
+		if (codenum == '' || codenum == null) {
+			layer.msg("验证码为空")
+			return;
+		}
+		if (!$('#checkbox1').is(':checked')) {
+			layer.msg("请阅读法律条款及隐私政策")
+			return;
+		}
+		$.ajax({
+			url: httpurl + '/api/officialAccounts/loginByCode',
+			type: 'get',
+			data: {
+				phone: phone,
+				code: codenum
+			},
+			success: function(data) {
+				localStorage.setItem("userId", data.data.data.id);
+				localStorage.setItem("phone", data.data.data.phone);
+
+				window.location.href = "kecheng.html"
+			}
+		})
+	}
+</script>

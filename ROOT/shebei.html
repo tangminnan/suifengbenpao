@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="format-detection" content="telephone=no">
+		<link rel="stylesheet" href="css/css.css?v1.0.3" type="text/css">
+		<script src="js/jquery-3.5.1.min.js"></script>
+		<title>我的设备</title>
+		<script type="text/javascript" src="js/Font.js"></script>
+		<script type="text/javascript" src="js/wode.js"></script>
+		<script type="text/javascript" src="layer_v3.1.1/3.1.1/layer.js"></script>
+	</head>
+	<body>
+		<div class="tit"><em onclick="window.history.go(-1)"></em></div>
+
+		<div class="shebei">
+			<h3>添加设备</h3>
+			<div class="boxA">
+				<input class="sheBnum" type="text" id="deviceNum" placeholder="输入设备号" onkeyup="this.value=this.value.replace(/[^0-9-]+.[^0-9-]+/,'');"/>
+				<input class="sheBbtn" type="button" value="添加" onclick="addDevice()" />
+			</div>
+			<h3>当前绑定</h3>
+			<div class="boxA boxB dq">
+
+			</div>
+			<div class="boxA boxB">
+				<p>历史绑定</p>
+				<ul class="history">
+
+				</ul>
+			</div>
+		</div>
+
+		<script>
+			var userId = localStorage.getItem("userId");
+			//var userId = '70'
+
+			function loadDevice() {
+				$.ajax({
+					url: httpurl + '/api/officialAccounts/getMyDevice',
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/getMyDevice',
+					type: 'get',
+					data: {
+						userId: userId
+					},
+					success: function(data) {
+						console.log(data.data)
+						var result = data.data
+						var dq = ''
+						var hisrory = ''
+						if (result.runHeartRateDevice) {
+							var runHeartRateDevice = result.runHeartRateDevice
+							if (runHeartRateDevice.deviceId) {
+								dq += '<span>' + runHeartRateDevice.deviceId + '</span>'
+								dq += '<div class="join">'
+								dq +=
+									`<input type="checkbox" name="sex" id="male1" class="chooseBtn" checked onchange="uploadDevice('${runHeartRateDevice.deviceId}','male1')"/>`
+								dq += '<label for="male1" class="choose-label"></label>'
+								dq += '</div>'
+							} else {
+								dq += '<span>暂无绑定</span>'
+							}
+							$('.dq').html(dq)
+						}
+						if (result.historyDevice.length > 0) {
+							for (var i = 0; i < result.historyDevice.length; i++) {
+								hisrory += '<li>'
+								hisrory += '<span>' + result.historyDevice[i].device_id + '</span>'
+								hisrory += '<div class="join">'
+								hisrory +=
+									`<input type="checkbox" name="sex" id="male_check${i}" class="chooseBtn" onchange="uploadDevice('${result.historyDevice[i].device_id}','male_check${i}')" />`
+
+								hisrory += `<label for="male_check${i}" class="choose-label"></label>`
+								hisrory += '</div>'
+								hisrory += '</li>'
+							}
+
+						} else {
+							hisrory += '<li>'
+							hisrory += '<span>暂无记录</span>'
+							hisrory += '</li>'
+						}
+						$('.history').html(hisrory)
+					}
+				})
+			}
+
+
+			if (userId) {
+				loadDevice();
+			} else {
+				window.location.href = 'denglu.html'
+			}
+
+			function uploadDevice(deviceid, id) {
+				if ($('#' + id)[0].checked) {
+					$.ajax({
+						url: httpurl+'/api/officialAccounts/changeDevice',
+						type: 'get',
+						data: {
+							deviceId: deviceid,
+							userId: userId
+						},
+						success: function(data) {
+							layer.msg(data.msg, function() {
+								//关闭后的操作
+								window.location.reload()
+							});
+						}
+					})
+				} else {
+					$.ajax({
+						url: httpurl+'/api/officialAccounts/unbindDevice',
+						type: 'get',
+						data: {
+							deviceId: deviceid,
+							userId: userId
+						},
+						success: function(data) {
+							layer.msg(data.msg, function() {
+								//关闭后的操作
+								window.location.reload()
+							});
+						}
+					})
+
+				}
+
+			}
+
+			function addDevice() {
+				/* var index = layer.load(1, {
+				  shade: [0.1,'#fff'] //0.1透明度的白色背景
+				}); */
+				var deviceId = $('#deviceNum').val()
+				if (deviceId == null || deviceId == '') {
+					layer.msg("设备号为空")
+					return;
+				}
+				$.ajax({
+					//url: 'http://192.168.0.21:8087/api/officialAccounts/addDevice',
+					url: httpurl + '/api/officialAccounts/addDevice',
+					type: 'get',
+					data: {
+						deviceId: deviceId,
+						userId: userId
+					},
+					success: function(data) {
+						layer.msg(data.msg, function() {
+							//关闭后的操作
+							window.location.reload()
+						});
+
+					}
+				})
+			}
+		</script>
+	</body>
+</html>

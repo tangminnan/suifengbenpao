@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('课程详情列表')"/>
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="formId">
+                <div class="select-list">
+                    <ul>
+                        <input id="courseId" type="text" name="courseId" th:value="${courseId}" hidden/>
+                        <li>
+                            <label>用户：</label>
+                            <select id="userId" name="userId">
+                                <option value="">所有</option>
+                                <option th:each="li:${userList}" th:value="${li.id}" th:text="${li.name}"></option>
+                            </select>
+                        </li>
+                        <li class="select-time">
+                            <label>运动时间：</label>
+                            <input type="text" class="time-input" id="startTime" placeholder="开始时间"
+                                   name="params[beginSportTime]"/>
+                            <span>-</span>
+                            <input type="text" class="time-input" id="endTime" placeholder="结束时间"
+                                   name="params[endSportTime]"/>
+                        </li>
+
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                    class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                    class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+            <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"
+               shiro:hasPermission="runmanager:detail:remove">
+                <i class="fa fa-remove"></i> 删除
+            </a>
+            <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="runmanager:detail:export">
+                <i class="fa fa-download"></i> 导出
+            </a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<script th:inline="javascript">
+   var editFlag = [[${@permission.hasPermi('runmanager:detail:edit')}]];
+   var removeFlag = [[${@permission.hasPermi('runmanager:detail:remove')}]];
+   var prefix = ctx + "runmanager/detail";
+
+   $(function () {
+      var options = {
+         url: prefix + "/list",
+         createUrl: prefix + "/add",
+         updateUrl: prefix + "/edit/{id}",
+         removeUrl: prefix + "/remove",
+         exportUrl: prefix + "/export",
+         modalName: "课程详情",
+         pagination: true,
+         pageSize: 10, // 如果设置了分页，每页数据条数
+         pageNumber: 1, // 如果设置了分布，首页页码
+
+         queryParams: function (params) {
+            return {
+               //说明：传入后台的参数包括offset开始索引，limit步长，sort排序列，order：desc或者,以及所有列的键值对
+               courseId: $('#courseId').val(),
+               userId: $('#userId').val(),
+               "params[beginSportTime]": $('#startTime').val(),
+               "params[endSportTime]": $('#endTime').val(),
+               // 传递参数查询参数
+               pageSize: params.limit,
+               pageNum: params.offset / params.limit + 1,
+               searchValue: params.search,
+               orderByColumn: params.sort,
+               isAsc: params.order
+            };
+         },
+         columns: [{
+            checkbox: true
+         },
+            {
+               field: 'id',
+               title: 'id',
+               visible: false
+            },
+            {
+               field: 'courseId',
+               title: '课程id'
+            },
+            {
+               field: 'userId',
+               title: '用户id'
+            },
+            {
+               field: 'username',
+               title: '用户名'
+            },
+            {
+               field: 'deviceId',
+               title: '设备号'
+            },
+            {
+               field: 'calorie',
+               title: '卡路里'
+            },
+            {
+               field: 'heartRate',
+               title: '心率'
+            },
+            {
+               field: 'stepCount',
+               title: '计步'
+            },
+            {
+               field: 'ck',
+               title: 'CK值'
+            },
+            {
+               field: 'sportTime',
+               title: '运动时间'
+            },
+            /*{
+                field: 'saveTime',
+                title: '保存时间'
+            },*/
+            {
+               title: '操作',
+               align: 'center',
+               formatter: function (value, row, index) {
+                  var actions = [];
+                  actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.id + '\')"><i class="fa fa-remove"></i>删除</a>');
+                  return actions.join('');
+               }
+            }]
+      };
+      $.table.init(options);
+   });
+</script>
+</body>
+</html>

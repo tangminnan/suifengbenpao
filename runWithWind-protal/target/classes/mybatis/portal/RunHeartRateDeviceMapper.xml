@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.portal.device.mapper.RunHeartRateDeviceMapper">
+
+    <resultMap type="RunHeartRateDevice" id="RunHeartRateDeviceResult">
+        <result property="id" column="id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="isbind" column="isbind"/>
+        <result property="name" column="name"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <sql id="selectRunHeartRateDeviceVo">
+        select id, device_id, isbind, name, user_id,status,place_id from run_heart_rate_device
+    </sql>
+
+    <select id="selectRunHeartRateDeviceList" parameterType="RunHeartRateDevice" resultMap="RunHeartRateDeviceResult">
+        <include refid="selectRunHeartRateDeviceVo"/>
+        <where>
+            <if test="deviceId != null  and deviceId != ''">and device_id like concat('%', #{deviceId}, '%')</if>
+            <if test="isbind != null  and isbind != ''">and isbind = #{isbind}</if>
+            <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="userId != null and userId!= ''">and user_id = #{userId}</if>
+            <if test="status != null  and status!=''">and status = #{status}</if>
+
+
+        </where>
+    </select>
+
+    <select id="selectRunHeartRateDeviceById" parameterType="Integer" resultMap="RunHeartRateDeviceResult">
+        <include refid="selectRunHeartRateDeviceVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectRunHeartRateDeviceByUserId" parameterType="Long" resultMap="RunHeartRateDeviceResult">
+        <include refid="selectRunHeartRateDeviceVo"/>
+        where user_id = #{userId}
+    </select>
+
+
+    <select id="selectRunHeartRateDeviceByDeviceId" parameterType="String" resultMap="RunHeartRateDeviceResult">
+        <include refid="selectRunHeartRateDeviceVo"/>
+        where device_id = #{deviceId}
+    </select>
+
+
+    <insert id="insertRunHeartRateDevice" parameterType="RunHeartRateDevice" useGeneratedKeys="true" keyProperty="id">
+        insert into run_heart_rate_device
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deviceId != null">device_id,</if>
+            <if test="isbind != null">isbind,</if>
+            <if test="name != null">name,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="status != null">status,</if>
+            <if test="placeId!=null ">place_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deviceId != null">#{deviceId},</if>
+            <if test="isbind != null">#{isbind},</if>
+            <if test="name != null">#{name},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="placeId!=null ">#{placeId},</if>
+
+        </trim>
+    </insert>
+
+    <update id="updateRunHeartRateDevice" parameterType="RunHeartRateDevice">
+        update run_heart_rate_device
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deviceId != null">device_id = #{deviceId},</if>
+            <if test="isbind != null and isbind !=''">isbind = #{isbind},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="placeId!=null ">place_id=#{placeId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunHeartRateDeviceById" parameterType="Integer">
+        delete from run_heart_rate_device where id = #{id}
+    </delete>
+
+    <delete id="deleteRunHeartRateDeviceByIds" parameterType="String">
+        delete from run_heart_rate_device where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

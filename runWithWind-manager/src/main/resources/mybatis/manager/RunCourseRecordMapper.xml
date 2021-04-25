@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.runmanager.record.mapper.RunCourseRecordMapper">
+    
+    <resultMap type="RunCourseRecord" id="RunCourseRecordResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="padMac"    column="pad_mac"    />
+        <result property="placeId"    column="place_id"    />
+        <result property="type"    column="type"    />
+    </resultMap>
+
+    <sql id="selectRunCourseRecordVo">
+        select id, name, start_time, end_time, pad_mac, place_id, type from run_course_record
+    </sql>
+
+    <select id="selectRunCourseRecordList" parameterType="RunCourseRecord" resultMap="RunCourseRecordResult">
+        <include refid="selectRunCourseRecordVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+
+            <if test="params.beginStartTime != null and params.beginStartTime!=''">
+                and start_time &gt;= #{params.beginStartTime}
+            </if>
+
+            <if test="params.endStartTime != null and params.endStartTime!=''">
+                and start_time &lt;= #{params.endStartTime}
+            </if>
+
+            <if test="params.endEndTime != null and params.endEndTime!=''">
+                and end_time &lt;= #{params.endEndTime}
+            </if>
+
+            <if test="params.beginEndTime != null and params.beginEndTime!=''">
+                and end_time &gt;= #{params.beginEndTime}
+
+            </if>
+
+            <if test="params.endEndTime != null and params.endEndTime!=''">
+                and end_time &lt;= #{params.endEndTime}
+            </if>
+
+            <if test="padMac != null  and padMac != ''"> and pad_mac = #{padMac}</if>
+            <if test="placeId != null "> and place_id = #{placeId}</if>
+            <if test="type != null "> and type = #{type}</if>
+        </where>
+        order by id desc
+    </select>
+    
+    <select id="selectRunCourseRecordById" parameterType="Integer" resultMap="RunCourseRecordResult">
+        <include refid="selectRunCourseRecordVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertRunCourseRecord" parameterType="RunCourseRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into run_course_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="padMac != null">pad_mac,</if>
+            <if test="placeId != null">place_id,</if>
+            <if test="type != null">type,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="padMac != null">#{padMac},</if>
+            <if test="placeId != null">#{placeId},</if>
+            <if test="type != null">#{type},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRunCourseRecord" parameterType="RunCourseRecord">
+        update run_course_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="padMac != null">pad_mac = #{padMac},</if>
+            <if test="placeId != null">place_id = #{placeId},</if>
+            <if test="type != null">type = #{type},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunCourseRecordById" parameterType="Integer">
+        delete from run_course_record where id = #{id}
+    </delete>
+
+    <delete id="deleteRunCourseRecordByIds" parameterType="String">
+        delete from run_course_record where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

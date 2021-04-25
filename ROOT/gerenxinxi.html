@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="format-detection" content="telephone=no">
+		<link rel="stylesheet" href="css/css.css?v1.0.4" type="text/css">
+		<script src="./js/jquery-3.5.1.min.js" type="application/javascript"></script>
+		<script src="./js/wode.js" type="application/javascript"></script>
+		<title>个人信息</title>
+		<script type="text/javascript" src="js/Font.js"></script>
+		<script type="text/javascript" src="layer_v3.1.1/3.1.1/layer.js"></script>
+	</head>
+	<body>
+		<div class="tit"><em onclick="window.history.go(-1)"></em></div>
+
+		<div class="mine">
+			<div class="cl"></div>
+			<div class="box bianji">
+
+			</div>
+		</div>
+
+		<!--性别弹窗（按需使用，当前隐藏了none）-->
+		<div class="pop" id="xbtk" style="display: none;">
+			<div class="txt">
+				<h2>性别<em onclick="closetk();">
+						<!--关闭--></em></h2>
+				<ul>
+					<li><input type="radio" value="男" name="rd" id="nan" onchange="changeSex(this)" />男</li>
+					<li><input type="radio" value="女" name="rd" id="nv" onchange="changeSex(this)" />女</li>
+				</ul>
+			</div>
+		</div>
+
+
+		<script>
+			var userId = localStorage.getItem("userId");
+			//var userId = '70'
+			if (userId) {
+				$.ajax({
+					url: httpurl + '/api/officialAccounts/getUser',
+					type: 'get',
+					async: false,
+					cache: false,
+					data: {
+						userId: userId
+					},
+					dataType: "json",
+					success: function(data) {
+						var user = data.data.data
+						console.log(user)
+						var html = ''
+						if (user) {
+							html += '<input type="hidden" id="id" value="' + user.id + '">'
+							html += '<div class="name">'
+
+							html += '<label for="files"><img id="addFileImg" src="' + user.headImg +
+								'" alt=""  onerror =" javascript:this.src=\'images/tx.jpg\'"/></label>'
+
+							html +=
+								'<label for="files"><p><input type="file" style="display: none;" onchange="udpateFileUrl(this)" id="files" name="fileImg" accept="image/png,image/jpeg" >编辑头像</p></label>'
+							html += '</div>'
+							html += '<ul>'
+							html += '<li>昵称<input id="name" onblur="uploadUser(1)" '
+							if (user.name)
+								html += 'value="' + user.name + '" />'
+							else
+								html += 'value="用户' + user.id + '" />'
+							html += '</li>'
+
+							html += '<li>年龄<input id="age"'
+							if (user.age)
+								html += 'value="' + user.age + '" '
+							else
+								html += 'placeholder="请输入年龄" '
+							html += 'onblur="uploadUser(2)"/></li>'
+
+							html += '<li onclick=openSex("' + user.sex + '")>性别<span id="sex">'
+
+							if (user.sex)
+								html += ' ' + user.sex + '</span>'
+							else
+								html += '未知</span>'
+							html += '</li>'
+
+							html += '<li>体重 <input onblur="uploadUser(4)" id="weight" '
+							if (user.weight)
+								html += ' value="' + user.weight + 'kg"/>'
+							else
+								html += ' "placeholder="请输入体重" / > '
+							html += '</li>'
+
+							html += '<li>手机号<input onblur="uploadUser(5)" id="phone"'
+							if (user.phone && isPhoneNumber(user.phone))
+								html += ' value="' + user.phone + '"/>'
+							else
+								html += ' value="未知"/>'
+							html += '</li>'
+
+							html += '</ul>'
+						}
+						$('.bianji').html(html)
+					},
+					error: function() {
+						layer.msg("失败...")
+					}
+				})
+			} else {
+				window.location.href = "denglu.html"
+			}
+
+			function openSex(sex) {
+				if (sex == '女') {
+					$("#nan").removeAttr("checked");
+					$("#nv").attr("checked", "checked");
+				} else if (sex == '男') {
+					$("#nv").removeAttr("checked");
+					$("#nan").attr("checked", "checked");
+				}
+				$('#xbtk').show()
+
+			}
+
+			function closetk() {
+				$('#xbtk').hide()
+			}
+
+			function uploadUser(type) {
+				var form = new FormData();
+				//修改姓名
+				if (type == 1) {
+					form.append("name", $('#name').val())
+				} else if (type == 2) {
+					form.append("age", $('#age').val())
+				} else if (type == 3) {
+					form.append("sex", $('#sex').val())
+					$('#xbtk').hide()	
+				} else if (type == 4) {
+					form.append("weight", $('#weight').val())
+				} else if (type == 5) {
+					form.append("phone", $('#phone').val())
+				} else if (type == 6) {
+					form.append("imgFile", $('#files')[0].files[0])
+				}
+
+				form.append("id", $('#id').val())
+
+				$.ajax({
+					url: httpurl+'/api/officialAccounts/updateUser',
+					type: 'post',
+					data: form,
+					processData: false,
+					contentType: false,
+					ayasc: false,
+					success: function(data) {
+						layer.msg(data.msg, function() {
+							window.location.reload()
+						})
+					}
+				})
+			}
+		</script>
+
+		<script>
+			function udpateFileUrl(obj) {
+				var fileURL = getObjectURL(obj.files[0]);
+				if (fileURL) {
+					$("#addFileImg").attr("src", fileURL);
+
+					uploadUser(6);
+				}
+			}
+
+			//建立一個可存取到該file的url
+			function getObjectURL(file) {
+				var url = null;
+				if (window.createObjectURL != undefined) { // basic
+					url = window.createObjectURL(file);
+				} else if (window.URL != undefined) { // mozilla(firefox)
+					url = window.URL.createObjectURL(file);
+				} else if (window.webkitURL != undefined) { // webkit or chrome
+					url = window.webkitURL.createObjectURL(file);
+				}
+				return url;
+			}
+
+			function changeSex(val) {
+				var sex = $(val).val();
+				$('#sex').val(sex)
+				uploadUser(3)
+			}
+		</script>
+
+	</body>
+</html>

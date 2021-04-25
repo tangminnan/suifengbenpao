@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.runwithwind.project.portal.detail.mapper.RunCourseDetailMapper">
+
+    <resultMap type="RunCourseDetail" id="RunCourseDetailResult">
+        <result property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="calorie" column="calorie"/>
+        <result property="heartRate" column="heart_rate"/>
+        <result property="stepCount" column="step_count"/>
+        <result property="ck" column="ck"/>
+        <result property="sportTime" column="sport_time"/>
+        <result property="saveTime" column="save_time"/>
+        <result property="deviceId" column="device_id"/>
+    </resultMap>
+
+    <sql id="selectRunCourseDetailVo">
+        select id, course_id, user_id, calorie, heart_rate, step_count, ck, sport_time, save_time,device_id from run_course_detail
+    </sql>
+
+    <select id="selectRunCourseDetailList" parameterType="RunCourseDetail" resultMap="RunCourseDetailResult">
+        <include refid="selectRunCourseDetailVo"/>
+        <where>
+            <if test="courseId != null ">and course_id = #{courseId}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="calorie != null ">and calorie = #{calorie}</if>
+            <if test="heartRate != null ">and heart_rate = #{heartRate}</if>
+            <if test="stepCount != null ">and step_count = #{stepCount}</if>
+            <if test="ck != null ">and ck = #{ck}</if>
+            <if test="saveTime != null ">and save_time = #{saveTime}</if>
+        </where>
+    </select>
+    <!--and DATE_ADD(#{params.endSportTime}, INTERVAL 1 DAY )-->
+    <select id="selectRunCourseDetailById" parameterType="Long" resultMap="RunCourseDetailResult">
+        <include refid="selectRunCourseDetailVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectAvgData" parameterType="RunCourseDetail" resultType="Map">
+        SELECT
+            SUM(a.ck) / COUNT(IF(a.ck > 0, 1, NULL)) avgCk,
+            SUM(a.calorie) / COUNT(IF(a.calorie > 0, 1, NULL)) avgCalorie,
+            MAX(calorie) calorie,
+            (count(*) - 1) * 5 / 60 course_time,
+            MAX(heart_rate) maxHeart,
+            MIN(NULLIF(heart_rate, 0)) minHeart,
+            AVG(NULLIF(heart_rate, 0)) avgHeart
+        FROM
+            (
+                SELECT
+                    *
+                FROM
+                    run_course_detail
+                WHERE
+                    course_id = #{courseId}
+                AND user_id = #{userId}
+            ) a
+    </select>
+
+
+    <select id="selectPersonNum" parameterType="RunCourseDetail" resultType="int">
+        SELECT
+            COUNT(*) presonNum
+        FROM
+            (
+                SELECT
+                    *
+                FROM
+                    run_course_detail
+                WHERE course_id = #{courseId}
+                GROUP BY
+                    user_id
+            ) a
+    </select>
+
+    <select id="selectRank" parameterType="RunCourseDetail" resultType="Map">
+            SELECT
+                c.calorieRank,f.ckRank
+            FROM
+                (
+                    SELECT
+                        @rowNum :=@rowNum + 1 AS calorieRank,
+                        user_id,
+                        SUM(calorie) 卡路里
+                    FROM
+                        run_course_detail a,
+                        (SELECT @rowNum := 0) b
+                    WHERE
+                        course_id = #{courseId}
+                    GROUP BY
+                        user_id
+                    ORDER BY
+                        '卡路里' DESC
+                ) c,
+                (
+                    SELECT
+                        @rowNum1 :=@rowNum1 + 1 AS ckRank,
+                        user_id,
+                        SUM(ck) ck值
+                    FROM
+                        run_course_detail d,
+                        (SELECT @rowNum1 := 0) e
+                    WHERE
+                        course_id = #{courseId}
+                    GROUP BY
+                        user_id
+                    ORDER BY
+                        'ck值' DESC
+                ) f
+            WHERE
+                c.user_id = f.user_id
+            AND c.user_id = #{userId}
+    </select>
+
+
+    <select id="selectxlChart" parameterType="RunCourseDetail" resultType="Map">
+        SELECT
+         SUBSTR(sport_time,11,9) sport_time,
+            heart_rate
+        FROM
+            run_course_detail
+        WHERE
+            course_id = #{courseId}
+        AND user_id = #{userId}
+    </select>
+
+    <select id="selectCalorieChart" parameterType="RunCourseDetail" resultType="Map">
+        SELECT
+        SUBSTR(sport_time,11,9) sport_time,
+        calorie
+        FROM
+        run_course_detail
+        <where>
+            <if test="courseId != null and courseId!=''">and course_id = #{courseId}</if>
+            <if test="userId != null and userId!=''">and user_id = #{userId}</if>
+        </where>
+        ORDER BY sport_time
+    </select>
+
+
+    <select id="selectxlAllot" parameterType="RunCourseDetail" resultType="Map">
+        SELECT
+            sport_time,
+            heart_rate
+        FROM
+            run_course_detail
+        WHERE
+            course_id = #{courseId}
+        AND user_id = #{userId}
+        AND heart_rate BETWEEN #{start}
+        AND #{end}
+    </select>
+
+    <!--查询课程中上课人的openid-->
+    <select id="selectUserBycourseId" parameterType="RunCourseDetail" resultType="String">
+        SELECT d.openid from(
+            SELECT
+            b.openid
+            FROM
+            (
+            SELECT
+            *
+            FROM
+            run_course_detail
+            WHERE
+            course_id = #{courseId}
+            GROUP BY
+            user_id
+            ) a
+            LEFT JOIN run_user b ON a.user_id = b.id
+            )d WHERE d.openid IS NOT NULL
+    </select>
+
+    <!--查询上下课时间-->
+    <select id="selectClassTime" parameterType="RunCourseDetail" resultType="Map">
+        SELECT
+            MIN(sport_time) min,
+            MAX(sport_time) max
+        FROM
+            run_course_detail
+        WHERE
+            course_id = #{courseId}
+        AND user_id = #{userId}
+    </select>
+
+
+    <insert id="insertRunCourseDetail" parameterType="RunCourseDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into run_course_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="calorie != null">calorie,</if>
+            <if test="heartRate != null">heart_rate,</if>
+            <if test="stepCount != null">step_count,</if>
+            <if test="ck != null">ck,</if>
+            <if test="sportTime != null">sport_time,</if>
+            <if test="saveTime != null">save_time,</if>
+            <if test="deviceId != null">device_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="calorie != null">#{calorie},</if>
+            <if test="heartRate != null">#{heartRate},</if>
+            <if test="stepCount != null">#{stepCount},</if>
+            <if test="ck != null">#{ck},</if>
+            <if test="sportTime != null">#{sportTime},</if>
+            <if test="saveTime != null">#{saveTime},</if>
+            <if test="deviceId != null">#{deviceId},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertRunCourseDetailList" parameterType="List">
+        insert into run_course_detail
+        (
+        course_id,
+        user_id,
+        calorie,
+        heart_rate,
+        step_count,
+        ck,
+        sport_time,
+        save_time,
+        device_id
+        )
+        values
+        <foreach collection="runCourseDetailList" item="item" separator=",">
+            (
+            #{item.courseId},
+            #{item.userId},
+            #{item.calorie},
+            #{item.heartRate},
+            #{item.stepCount},
+            #{item.ck},
+            #{item.sportTime},
+            #{item.saveTime},
+            #{item.deviceId}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateRunCourseDetail" parameterType="RunCourseDetail">
+        update run_course_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="calorie != null">calorie = #{calorie},</if>
+            <if test="heartRate != null">heart_rate = #{heartRate},</if>
+            <if test="stepCount != null">step_count = #{stepCount},</if>
+            <if test="ck != null">ck = #{ck},</if>
+            <if test="sportTime != null">sport_time = #{sportTime},</if>
+            <if test="saveTime != null">save_time = #{saveTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRunCourseDetailById" parameterType="Long">
+        delete from run_course_detail where id = #{id}
+    </delete>
+
+    <delete id="deleteRunCourseDetailByIds" parameterType="String">
+        delete from run_course_detail where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+		<meta name="format-detection" content="telephone=no">
+		<link rel="stylesheet" href="css/css.css?v1.0.2" type="text/css">
+		<script src="js/jquery-3.5.1.min.js" type="text/javascript"></script>
+		<script src="js/echarts.min.js" type="text/javascript"></script>
+		<script src="js/wode.js" type="text/javascript"></script>
+		<title>课程报告</title>
+		<script type="text/javascript" src="js/Font.js"></script>
+		<script type="text/javascript" src="layer_v3.1.1/3.1.1/layer.js"></script>
+	</head>
+	<body class="reportBG">
+		<div class="tit"><em onclick="window.history.go(-1)"></em></div>
+
+		<div class="report">
+			<!--我的报告-->
+			<div class="report_top">
+				<div class="who">
+
+				</div>
+				<dl>
+					<dt>我的报告</dt>
+					<dd class="courseName"></dd>
+					<dd class="KCname"><span class="kaluli11"></span>千卡</dd>
+				</dl>
+				<ul>
+					<li>运动时长<span class="time"></span></li>
+					<li>平均心率<span class="avgHeart"></span></li>
+					<li><div>CK值<p style="float: right;"><img src="images/wenhao.png" width="16" height="16" id="ckimg" onclick="stopTabTd(3)"></p></div><span class="ckNum"></span></li>
+				</ul>
+			</div>
+			<!--课堂人数-->
+			<div class="report_peoples">
+				<h3>本次课堂人数<span class="person"></span></h3>
+				<ul>
+					<li><span class="kaluliRank"></span>卡路里排名</li>
+					<li><span class="ckRank"></span>CK值排名</li>
+				</ul>
+			</div>
+			<!--调整呼吸-->
+			<div class="report_huxi" id="xinlv"></div>
+			<!--心率-->
+			<div class="report_xinlv">
+				<h3>心率(bpm)
+				<!-- <span style="float: right;"><img src="images/wenhao.png" width="16" height="16" id="xinlvimg" onclick="stopTabTd(1)"></span> -->
+				</h3>
+				<ul>
+					<li>最高<span class="maxHeart"></span></li>
+					<li>平均<span class="avgHeart"></span></li>
+					<li>最低<span class="minHeart"></span></li>
+				</ul>
+				<div class="map">
+					<div id="main1" style="width:100%;height:100%;"></div>
+				</div>
+				<h4>心率区间时间分配</h4>
+				<div class="biaoge_paiIn">
+					<div class="liTop">
+						<p>区间</p>
+						<p>时长</p>
+						<p>占比</p>
+					</div>
+					<div class="liIn">
+						<div class="liIn_left">140-200</div>
+						<div class="liIn_line">
+							<div class="line_lineIn line5"></div>
+						</div>
+						<p class="timE time5"></p>
+						<p class="num timenum5"></p>
+					</div>
+
+					<div class="liIn liIn2">
+						<div class="liIn_left">120-140</div>
+						<div class="liIn_line">
+							<div class="line_lineIn line4"></div>
+						</div>
+						<p class="timE time4"></p>
+						<p class="num timenum4"></p>
+					</div>
+
+					<div class="liIn liIn3">
+						<div class="liIn_left">100-120</div>
+						<div class="liIn_line">
+							<div class="line_lineIn line3"></div>
+						</div>
+						<p class="timE time3"></p>
+						<p class="num timenum3"></p>
+					</div>
+
+					<div class="liIn liIn4">
+						<div class="liIn_left">80-100</div>
+						<div class="liIn_line">
+							<div class="line_lineIn line2"></div>
+						</div>
+						<p class="timE time2"></p>
+						<p class="num timenum2"></p>
+					</div>
+
+					<div class="liIn liIn5">
+						<div class="liIn_left">60-80</div>
+						<div class="liIn_line">
+							<div class="line_lineIn line1"></div>
+						</div>
+						<p class="timE time1"></p>
+						<p class="num timenum1"></p>
+					</div>
+
+				</div>
+
+			</div>
+			<div class="report_huxi" id="kaluli"></div>
+			<!--卡路里-->
+			<div class="report_CK">
+				<h3 class="kaluli"></h3>
+				<!-- <ul>
+					<li>总消耗<span class="kaluli"></span></li>
+					<li>平均消耗<span class="avgKaluli"></span></li>
+				</ul> -->
+				<div class="map">
+					<div id="main2" style="width:100%;height:100%;"></div>
+				</div>
+			</div>
+
+		</div>
+	</body>
+</html>
+<script type="text/javascript">
+	var userId;
+	userId = localStorage.getItem("userId");
+	
+	if (getQueryVariable("userId")) {
+		userId = getQueryVariable("userId");
+	}
+	// 基于准备好的dom，初始化echarts实例
+	var myChart1 = echarts.init(document.getElementById('main1'));
+	var myChart2 = echarts.init(document.getElementById('main2'));
+
+	function loadReport() {
+		//折线图1
+		setTimeout(function() {
+			option = {
+				title: {
+					text: '',
+					textStyle: {
+						fontWeight: 'normal',
+						color: '#fff', //标题颜色
+					},
+					x: "left"
+				},
+				tooltip: {
+					trigger: 'axis'
+				},
+
+				grid: {
+					left: '0%',
+					right: '20%',
+					bottom: '18%',
+					containLabel: true
+				},
+				xAxis: {
+					type: 'category',
+					name: '分钟',
+					boundaryGap: false,
+					axisLabel: {
+						//formatter: '{value} ml',//单位
+						textStyle: {
+							fontSize: 12,
+							color: '#666'
+						},
+					},
+					//x轴颜色
+					axisLine: {
+						lineStyle: {
+							color: '#153b57',
+						}
+					},
+				},
+				yAxis: {
+					type: 'value',
+					name: '(bmp)',
+					nameTextStyle: { //y轴上方单位的颜色
+						color: '#666'
+					},
+					//设置网格线颜色
+					splitLine: {
+						show: true,
+						lineStyle: {
+							color: ['#fddfdf'],
+							width: 1,
+							type: 'solid'
+						},
+					},
+					axisLabel: {
+						formatter: '{value}', //单位
+						textStyle: {
+							fontSize: 12,
+							color: '#666'
+						},
+					},
+					//y轴颜色
+					axisLine: {
+						lineStyle: {
+							color: '#fddfdf',
+						}
+					},
+				},
+				series: [{
+					type: 'line',
+				}]
+			};
+
+			myChart1.setOption(option);
+			myChart1.showLoading();
+		});
+
+		//折线图2
+		setTimeout(function() {
+			option = {
+				grid: {
+					left: '5%',
+					right: '20%',
+					bottom: '18%',
+					containLabel: true
+				},
+				tooltip: {
+					trigger: 'axis'
+				},
+				xAxis: {
+					type: 'category',
+					name: '分钟',
+					//data: ['10', '20', '30', '40', '50', '60']
+				},
+				yAxis: {
+					type: 'value',
+					name: '(单位：千卡)'
+				},
+				series: [{
+					//data: [20, 30, 50, 36, 60, 80],
+					type: 'line',
+
+				}]
+			};
+
+			myChart2.setOption(option);
+			myChart2.showLoading();
+		});
+		console.log(getQueryVariable("id"))
+		$.ajax({
+			type: 'get',
+			url: httpurl + 'api/officialAccounts/getClassReport',
+			data: {
+				courseId: getQueryVariable("id"),
+				//courseId: 211,
+				userId: userId
+			},
+			dataType: 'json',
+			success: function(data) {
+				console.log(data.data, 'data')
+				var result = data.data
+				if(result.avg){
+				  var avg = result.avg
+				}else{
+					var avg = 0.0
+				}
+
+				var rank = result.rank
+				var xlMap = result.xlMap
+				var calorieMap = result.calorieMap
+				var sport_time = []
+				var xinlv = []
+				var sport_time1 = []
+				var kaluli = []
+				for (var i = 0; i < xlMap.length; i++) {
+					var time = xlMap[i].sport_time.replace(' ', '')
+					sport_time.push(time)
+
+					xinlv.push(xlMap[i].heart_rate)
+				}
+				for (var j = 0; j < xlMap.length; j++) {
+
+					var time = calorieMap[j].sport_time.replace(' ', '')
+					sport_time1.push(time)
+
+					kaluli.push(calorieMap[j].calorie)
+				}
+
+				var xltime = result.xltime
+				var xltimeZb = result.xltimeZb
+				myChart1.hideLoading(); //隐藏加载动画
+				myChart1.setOption({ //加载数据图表
+					xAxis: {
+						data: sport_time
+					},
+					series: [{
+						name: '心率',
+						data: xinlv,
+						smooth: true,
+						areaStyle: {
+							normal: {
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+										offset: 0,
+										color: "#f96262"
+									},
+									{
+										offset: 0.5,
+										color: "#fcc8c8"
+									},
+									{
+										offset: 1,
+										color: "#fddfdf"
+									}
+								])
+							}
+						}, //填充区域样式
+					}]
+				})
+
+				myChart2.hideLoading(); //隐藏加载动画
+				myChart2.setOption({ //加载数据图表
+					xAxis: {
+						data: sport_time1
+					},
+					series: [{
+						name: '卡路里',
+						data: kaluli,
+						symbol: 'circle', //折线点设置为实心点
+						symbolSize: 8, //折线点的大小
+						itemStyle: {
+							normal: {
+								color: "#fe902e", //折线点的颜色
+								lineStyle: {
+									color: '#fe902e'
+								} //折线颜色 
+							}
+						},
+					}]
+				})
+
+
+				//头像部分
+				var user = ''
+				user += '<img src="' + result.heardImg + '" alt=""  onerror =" javascript:this.src=\'images/tx.jpg\'"/>'
+
+
+				if (result.username) {
+					user += '<h3>' + result.username + '</h3>'
+				} else {
+					user += '<h3>新用户</h3>'
+				}
+				$('.who').html(user)
+				$('.courseName').text(result.courseName)
+				
+				var kalulispan = ''
+				if (avg.calorie){
+					kalulispan += '卡路里消耗'+Math.round(avg.calorie)+'kcal'
+					$('.kaluli11').text(Math.round(avg.calorie))
+				}else{
+					kalulispan += '卡路里消耗0kcal'
+					$('.kaluli11').text(0)
+				}
+				kalulispan+='<span style="float: right;"><img src="images/wenhao.png" width="16" height="16" onclick="stopTabTd(2)" id="kaluliimg"></span>'
+				$('.kaluli').html(kalulispan)
+
+				if (avg.avgCalorie)
+					$('.avgKaluli').text(Math.round(avg.avgCalorie))
+				else
+					$('.avgKaluli').text(0)
+
+
+				if (avg.avgHeart)
+					$('.avgHeart').text(Math.round(avg.avgHeart))
+				else
+					$('.avgHeart').text(0)
+				
+				
+				
+
+				if (avg.maxHeart)
+					$('.maxHeart').text(Math.round(avg.maxHeart))
+				else
+					$('.minHeart').text(0)
+
+				if (avg.minHeart)
+					$('.minHeart').text(Math.round(avg.minHeart))
+				else
+					$('.mHeart').text(0)
+
+				//心率总结
+				var age = result.age;
+				if(!age){
+					age = 30;
+				}
+				var RMax = 220-age;
+				console.log(RMax)
+				var avgHeart = avg.avgHeart;
+				console.log(avgHeart)
+				
+				if(avgHeart<0.6*RMax){
+					$('#xinlv').text("轻度运动，耗能极少")
+				}else if(avgHeart>0.6*RMax && avgHeart<0.7*RMax){
+					$('#xinlv').text("轻度有氧区间，身体以脂肪代谢为主")
+				}else if(avgHeart>0.7*RMax && avgHeart<0.8*RMax){
+					$('#xinlv').text("中到高度有氧区间，糖原代谢比例增大")
+				}else if(avgHeart>0.8*RMax && avgHeart<0.9*RMax){
+					$('#xinlv').text("乳酸阈值区间，糖原代谢为主，出现乳酸堆积")
+				}else if(avgHeart>0.9*RMax){
+					$('#xinlv').text("接近无氧代谢，几乎全部热量来源于糖原分解")
+				} 
+				
+				
+				//卡路里总结 各项对应卡路里，单位千卡
+				var arr = [20,44,54,86,135,180,210,250,320,420,508,600,816]
+				
+				var allkaluli = Math.round(avg.calorie)
+				var result = closest(arr,allkaluli)
+				if(result == 20){
+					if(20-allkaluli >10){
+						$('#kaluli').text("您本次运动量太小，消耗不足一个100g的番茄，请继续努力哦")
+					}else{
+						$('#kaluli').text("您本次运动相当于消耗了一个100g的番茄，继续努力哦")
+					}
+				}else if(result == 44){
+					$('#kaluli').text("您本次运动相当于消耗了一个苹果，继续努力哦")
+				}else if(result == 54){
+					$('#kaluli').text("您本次运动相当于消耗了一个猕猴桃，继续努力哦")
+				}else if(result == 86){
+					$('#kaluli').text("您本次运动相当于消耗了一个鸡蛋，继续努力哦")
+				}else if(result == 135){
+					$('#kaluli').text("您本次运动相当于消耗了一瓶雪碧，继续努力哦")
+				}else if(result == 180){
+					$('#kaluli').text("您本次运动相当于消耗了一个鸡腿，继续努力哦")
+				}else if(result == 210){
+					$('#kaluli').text("您本次运动相当于消耗了一碗白米饭，继续努力哦")
+				}else if(result == 250){
+					$('#kaluli').text("您本次运动相当于消耗了一个肉包子，继续努力哦")
+				}else if(result == 320){
+					$('#kaluli').text("您本次运动相当于消耗了一根100g的火腿，继续保持哦")
+				}else if(result == 420){
+					$('#kaluli').text("您本次运动相当于消耗了10个水饺，继续保持哦")
+				}else if(result == 508){
+					$('#kaluli').text("您本次运动相当于消耗了一根100g的香肠，继续保持哦")
+				}else if(result == 600){
+					$('#kaluli').text("您本次运动相当于消耗了一个墨西哥鸡肉卷，继续保持哦")
+				}else if(result ==816){
+					if(allkaluli - result >20){
+						$('#kaluli').text("您本次运动量爆表，消耗远大于100g肥肉，继续保持哦")
+					}else{
+						$('#kaluli').text("您本次运动相当于消耗了100g的肥肉，继续保持哦")
+					}
+				}
+				
+				console.log(result,"结果")
+
+				//ck
+				if (avg.avgCk)
+					$('.ckNum').text(Math.round(avg.avgCk))
+				else
+					$('.ckNum').text(0)
+
+				if(result.personNum)
+				$('.person').text(result.personNum + '人')
+				else 
+				$('.person').text('未知')
+
+				if (rank) {
+					if (rank.calorieRank)
+						$('.kaluliRank').text(rank.calorieRank)
+					else
+						$('.kaluliRank').text(0)
+
+					if (rank.ckRank)
+						$('.ckRank').text(rank.ckRank)
+					else
+						$('.ckRank').text(0)
+				} else {
+					$('.kaluliRank').text('上课中')
+					$('.ckRank').text('上课中')
+				}
+				var time11 = ChangeHourMinutestr(Math.round(avg.course_time))
+				$('.time').text(time11)
+
+				$('.time1').text(formatSeconds(xltime.xltime1))
+				$('.time2').text(formatSeconds(xltime.xltime2))
+				$('.time3').text(formatSeconds(xltime.xltime3))
+				$('.time4').text(formatSeconds(xltime.xltime4))
+				$('.time5').text(formatSeconds(xltime.xltime5))
+
+				$('.timenum1').text(xltimeZb.xltimeZb1)
+				$('.timenum2').text(xltimeZb.xltimeZb2)
+				$('.timenum3').text(xltimeZb.xltimeZb3)
+				$('.timenum4').text(xltimeZb.xltimeZb4)
+				$('.timenum5').text(xltimeZb.xltimeZb5)
+
+				$('.line1').css('width', xltimeZb.xltimeZb1);
+				$('.line2').css('width', xltimeZb.xltimeZb2);
+				$('.line3').css('width', xltimeZb.xltimeZb3);
+				$('.line4').css('width', xltimeZb.xltimeZb4);
+				$('.line5').css('width', xltimeZb.xltimeZb5);
+			}
+		})
+	}
+
+	if (userId) {
+		loadReport();
+	} else {
+		window.location.href = "denglu.html"
+	}
+	
+	function closest(arr, num){
+	  var left = 0;
+	  var right = arr.length - 1
+	
+	  while(left <= right){
+	    var middle = Math.floor((right + left) / 2)
+	    if(right - left <= 1){
+	      break;
+	    }
+	    var val = arr[middle];
+	    if(val === num){
+	      return middle;
+	    }
+	    else if(val > num){
+	      right = middle;
+	    }
+	    else{
+	      left = middle;
+	    }
+	  }
+	
+	  var leftValue = arr[left];
+	  var rightValue = arr[right];
+	  return rightValue - num > num - leftValue ? leftValue : rightValue;
+	}
+	
+	
+	function stopTabTd(type){
+		//ck
+		/* if(type == 1){
+			layer.tips('CK值=卡路里消耗/体重，反映热量消耗对不同个体减脂的作用大小，CK值越大，减脂效果越好', '#xinlvimg', {
+			  tips: [1, '#3595CC'],
+			  time: 4000,
+			  closeBtn: true
+			});
+		} */
+		//卡路里
+		if(type ==2){
+			layer.tips('卡路里是一种热量单位，其定义为在1个大气压下，将1克水提升1摄氏度所需要的热量。', '#kaluliimg', {
+			  tips: [1, '#3595CC'],
+			  time: 3000,
+			   closeBtn: true
+			});
+		}
+		//ck
+		else if(type == 3){
+			layer.tips('CK值=卡路里消耗/体重，反映热量消耗对不同个体减脂的作用大小，CK值越大，减脂效果越好', '#ckimg', {
+			  tips: [1, '#3595CC'],
+			  time: 3000,
+			   closeBtn: true
+			});
+		}
+		
+	   }
+
+</script>
